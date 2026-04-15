@@ -138,42 +138,7 @@ export default function DashboardPage() {
                 </Card.Body>
               </Card>
             </Col>
-            <Col lg={4}>
-              <Card className="border-0 shadow-sm h-100" style={{ borderRadius: '20px' }}>
-                <Card.Header className="bg-white border-0 pt-4 px-4">
-                  <h4 className="fw-bold mb-0" style={{ color: '#000' }}>Quick Tips</h4>
-                </Card.Header>
-                <Card.Body className="px-4 pb-4">
-                  <div className="d-flex gap-3 mb-4">
-                    <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', background: '#ff6b35' }}>
-                      <FaUtensils color="#fff" size={18} />
-                    </div>
-                    <div>
-                      <h6 className="fw-bold mb-1" style={{ color: '#000' }}>Keep menu updated</h6>
-                      <p className="text-muted small mb-0">Regularly update your food items</p>
-                    </div>
-                  </div>
-                  <div className="d-flex gap-3 mb-4">
-                    <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', background: '#4facfe' }}>
-                      <FaDollarSign color="#fff" size={18} />
-                    </div>
-                    <div>
-                      <h6 className="fw-bold mb-1" style={{ color: '#000' }}>Track inventory value</h6>
-                      <p className="text-muted small mb-0">Monitor your stock value regularly</p>
-                    </div>
-                  </div>
-                  <div className="d-flex gap-3">
-                    <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', background: '#f093fb' }}>
-                      <FaBoxes color="#fff" size={18} />
-                    </div>
-                    <div>
-                      <h6 className="fw-bold mb-1" style={{ color: '#000' }}>Low stock alerts</h6>
-                      <p className="text-muted small mb-0">Keep an eye on items with low stock</p>
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
+           
           </Row>
         </Container>
       </div>

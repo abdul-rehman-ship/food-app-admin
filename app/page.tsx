@@ -1,65 +1,182 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useState } from 'react';
+import { Container, Row, Col, Card } from 'react-bootstrap';
+import { FaUtensils, FaList, FaDollarSign, FaBoxes, FaPlusCircle, FaChartLine } from 'react-icons/fa';
+import { db } from './lib/firebase';
+import { ref, get } from 'firebase/database';
+import Navbar from './components/Navbar';
+import Link from 'next/link';
+
+interface Stats {
+  totalItems: number;
+  totalCategories: number;
+  totalValue: number;
+  lowStock: number;
+}
+
+interface FoodItem {
+  price: number;
+  stock: number;
+}
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState<Stats>({
+    totalItems: 0,
+    totalCategories: 0,
+    totalValue: 0,
+    lowStock: 0
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    const [foodSnapshot, catSnapshot] = await Promise.all([
+      get(ref(db, 'food_items')),
+      get(ref(db, 'categories'))
+    ]);
+    
+    const items: FoodItem[] = [];
+    foodSnapshot.forEach((child) => {
+      const val = child.val() as FoodItem;
+      if (val) items.push(val);
+    });
+    
+    const totalValue = items.reduce((sum, item) => sum + ((item.price || 0) * (item.stock || 0)), 0);
+    const lowStock = items.filter(item => (item.stock || 0) < 10).length;
+    
+    setStats({
+      totalItems: items.length,
+      totalCategories: catSnapshot.size,
+      totalValue,
+      lowStock
+    });
+  };
+
+  const statCards = [
+    { title: 'Total Food Items', value: stats.totalItems, icon: FaUtensils, gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', bg: '#667eea' },
+    { title: 'Categories', value: stats.totalCategories, icon: FaList, gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: '#fff', bg: '#f5576c' },
+    { title: 'Inventory Value', value: `$${stats.totalValue.toFixed(2)}`, icon: FaDollarSign, gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: '#fff', bg: '#4facfe' },
+    { title: 'Low Stock Items', value: stats.lowStock, icon: FaBoxes, gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: '#fff', bg: '#fa709a' }
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <>
+      <Navbar />
+      <div style={{ background: '#f8f9fa', minHeight: '100vh' }}>
+        <Container className="py-5">
+          <div className="mb-5">
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <h2 className="display-5 fw-bold mb-3" style={{ background: 'linear-gradient(135deg, #000, #ff6b35)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  Dashboard Overview
+                </h2>
+                <p className="text-muted fs-5">Welcome back! Here's what's happening with your food business today.</p>
+              </div>
+              <div className="d-none d-md-block">
+                <FaChartLine size={48} color="#ff6b35" opacity={0.3} />
+              </div>
+            </div>
+          </div>
+          
+          <Row className="g-4 mb-5">
+            {statCards.map((card, idx) => (
+              <Col key={idx} md={6} lg={3}>
+                <Card className="border-0 h-100 overflow-hidden shadow-sm" style={{ borderRadius: '20px' }}>
+                  <Card.Body className="p-4">
+                    <div className="d-flex justify-content-between align-items-start">
+                      <div>
+                        <p className="text-muted mb-2 fw-semibold">{card.title}</p>
+                        <h3 className="fw-bold mb-0" style={{ fontSize: '2rem', color: '#000' }}>{card.value}</h3>
+                      </div>
+                      <div style={{ 
+                        background: card.gradient, 
+                        padding: '14px', 
+                        borderRadius: '16px',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+                      }}>
+                        <card.icon size={28} color="#fff" />
+                      </div>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+          
+          <Row>
+            <Col lg={8}>
+              <Card className="border-0 shadow-sm" style={{ borderRadius: '20px' }}>
+                <Card.Header className="bg-white border-0 pt-4 px-4">
+                  <h4 className="fw-bold mb-0" style={{ color: '#000' }}>Quick Actions</h4>
+                </Card.Header>
+                <Card.Body className="px-4 pb-4">
+                  <Row className="g-3">
+                    <Col md={6}>
+                      <Link href="/food-items" style={{ textDecoration: 'none' }}>
+                        <div className="p-4 rounded-3" style={{ background: '#f8f9fa', transition: 'all 0.3s', cursor: 'pointer', border: '1px solid #e0e0e0' }}>
+                          <FaPlusCircle size={32} className="mb-3" style={{ color: '#ff6b35' }} />
+                          <h5 className="fw-bold mb-1" style={{ color: '#000' }}>Add Food Item</h5>
+                          <p className="text-muted small mb-2">Create new menu items with images</p>
+                          <span className="small fw-semibold" style={{ color: '#ff6b35' }}>Get Started →</span>
+                        </div>
+                      </Link>
+                    </Col>
+                    <Col md={6}>
+                      <Link href="/categories" style={{ textDecoration: 'none' }}>
+                        <div className="p-4 rounded-3" style={{ background: '#f8f9fa', transition: 'all 0.3s', cursor: 'pointer', border: '1px solid #e0e0e0' }}>
+                          <FaList size={32} className="mb-3" style={{ color: '#ff6b35' }} />
+                          <h5 className="fw-bold mb-1" style={{ color: '#000' }}>Manage Categories</h5>
+                          <p className="text-muted small mb-2">Organize your food categories</p>
+                          <span className="small fw-semibold" style={{ color: '#ff6b35' }}>Get Started →</span>
+                        </div>
+                      </Link>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col lg={4}>
+              <Card className="border-0 shadow-sm h-100" style={{ borderRadius: '20px' }}>
+                <Card.Header className="bg-white border-0 pt-4 px-4">
+                  <h4 className="fw-bold mb-0" style={{ color: '#000' }}>Quick Tips</h4>
+                </Card.Header>
+                <Card.Body className="px-4 pb-4">
+                  <div className="d-flex gap-3 mb-4">
+                    <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', background: '#ff6b35' }}>
+                      <FaUtensils color="#fff" size={18} />
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1" style={{ color: '#000' }}>Keep menu updated</h6>
+                      <p className="text-muted small mb-0">Regularly update your food items</p>
+                    </div>
+                  </div>
+                  <div className="d-flex gap-3 mb-4">
+                    <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', background: '#4facfe' }}>
+                      <FaDollarSign color="#fff" size={18} />
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1" style={{ color: '#000' }}>Track inventory value</h6>
+                      <p className="text-muted small mb-0">Monitor your stock value regularly</p>
+                    </div>
+                  </div>
+                  <div className="d-flex gap-3">
+                    <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', background: '#f093fb' }}>
+                      <FaBoxes color="#fff" size={18} />
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1" style={{ color: '#000' }}>Low stock alerts</h6>
+                      <p className="text-muted small mb-0">Keep an eye on items with low stock</p>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </div>
+    </>
   );
 }

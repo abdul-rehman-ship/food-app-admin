@@ -92,15 +92,15 @@ export default function TrailorsPage() {
 
   // Initialize Map
   const initMap = (lat: number, lng: number) => {
-    if (!window.google || !mapLoaded) return;
+    if (!window?.google || !mapLoaded) return;
 
     const mapElement = document.getElementById('trailor-map');
     if (!mapElement) return;
 
-    const mapInstance = new window.google.maps.Map(mapElement, {
+    const mapInstance = new window?.google.maps.Map(mapElement, {
       center: { lat, lng },
       zoom: 15,
-      mapTypeId: window.google.maps.MapTypeId.ROADMAP,
+      mapTypeId: window?.google?.maps?.MapTypeId?.ROADMAP,
     });
 
     const markerInstance = new window.google.maps.Marker({

@@ -209,7 +209,7 @@ export default function CategoriesPage() {
                 style={{ 
                   borderRadius: '12px', 
                   border: '2px solid #e0e0e0',
-                  focusBorderColor: '#6b0c12'
+                  borderColor: '#6b0c12'
                 }}
                 required
                 autoFocus

@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --primary: #000000;
-  --primary-dark: #1a1a1a;
+  --primary: #6b0c12;
+  --primary-light: #8f1018;
+  --primary-lighter: #b3141e;
+  --primary-soft: #e8b3b7;
+  --primary-bg: #fdf4f5;
   --secondary: #ff6b35;
   --secondary-light: #ff8555;
   --accent: #ffc107;
@@ -36,7 +39,7 @@ body {
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 25px -12px rgba(107, 12, 18, 0.15);
 }
 
 /* Modern Buttons */
@@ -51,32 +54,36 @@ body {
 }
 
 .btn-dark {
-  background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+  background: linear-gradient(135deg, #6b0c12 0%, #8f1018 100%);
   border: none;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(107, 12, 18, 0.2);
 }
 
 .btn-dark:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-  background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+  box-shadow: 0 6px 20px rgba(107, 12, 18, 0.3);
+  background: linear-gradient(135deg, #8f1018 0%, #6b0c12 100%);
 }
 
 .btn-outline-dark {
   border-radius: 12px;
   font-weight: 600;
   border-width: 2px;
+  border-color: #6b0c12;
+  color: #6b0c12;
 }
 
 .btn-outline-dark:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(107, 12, 18, 0.15);
+  background: linear-gradient(135deg, #6b0c12, #8f1018);
+  border-color: transparent;
 }
 
 /* Modern Navbar */
 .navbar-dark {
-  background: linear-gradient(135deg, #000 0%, #1a1a1a 100%) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #6b0c12 0%, #8f1018 100%) !important;
+  box-shadow: 0 4px 20px rgba(107, 12, 18, 0.2);
 }
 
 .navbar-dark .navbar-nav .nav-link {
@@ -87,13 +94,14 @@ body {
 }
 
 .navbar-dark .navbar-nav .nav-link:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
 }
 
 .navbar-dark .navbar-nav .nav-link.active {
-  background: linear-gradient(135deg, #ff6b35, #ff8555);
+  background: linear-gradient(135deg, #b3141e, #e8b3b7);
   color: white !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Headings */
@@ -105,7 +113,7 @@ h1, h2, h3, h4, h5, h6 {
 h2 {
   font-size: 2rem;
   margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, #000 0%, #ff6b35 100%);
+  background: linear-gradient(135deg, #6b0c12 0%, #b3141e 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -121,13 +129,13 @@ h2 {
 }
 
 .form-control:focus, .form-select:focus {
-  border-color: #ff6b35;
-  box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+  border-color: #6b0c12;
+  box-shadow: 0 0 0 0.2rem rgba(107, 12, 18, 0.25);
 }
 
 .form-label {
   font-weight: 600;
-  color: #1a1a1a;
+  color: #6b0c12;
   margin-bottom: 8px;
 }
 
@@ -140,18 +148,18 @@ h2 {
 }
 
 .bg-dark {
-  background: linear-gradient(135deg, #000, #1a1a1a) !important;
+  background: linear-gradient(135deg, #6b0c12, #8f1018) !important;
 }
 
 .bg-secondary {
-  background: linear-gradient(135deg, #ff6b35, #ff8555) !important;
+  background: linear-gradient(135deg, #b3141e, #e8b3b7) !important;
 }
 
 /* Modals */
 .modal-content {
   border-radius: 20px;
   border: none;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(107, 12, 18, 0.25);
 }
 
 .modal-header {
@@ -213,17 +221,17 @@ h2 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #000, #ff6b35);
+  background: linear-gradient(135deg, #6b0c12, #b3141e);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #ff6b35;
+  background: #b3141e;
 }
 
 /* Dashboard Background */
 .dashboard-bg {
-  background: #f8f9fa;
+  background: #fef8f9;
   min-height: 100vh;
 }
 
@@ -234,7 +242,7 @@ h2 {
 }
 
 .table thead th {
-  background: #000;
+  background: linear-gradient(135deg, #6b0c12, #8f1018);
   color: white;
   font-weight: 600;
   border: none;
@@ -242,5 +250,100 @@ h2 {
 }
 
 .table tbody tr:hover {
-  background: #f8f9fa;
+  background: #fef8f9;
+}
+
+/* Additional Utility Classes */
+.bg-primary-gradient {
+  background: linear-gradient(135deg, #6b0c12, #b3141e);
+}
+
+.text-primary {
+  color: #6b0c12 !important;
+}
+
+.border-primary {
+  border-color: #6b0c12 !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6b0c12, #8f1018);
+  border: none;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #8f1018, #b3141e);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 12, 18, 0.3);
+}
+
+/* Alert Styles */
+.alert-primary {
+  background: #fef8f9;
+  border-color: #e8b3b7;
+  color: #6b0c12;
+}
+
+/* Pagination Styles */
+.page-link {
+  color: #6b0c12;
+}
+
+.page-link:hover {
+  color: #b3141e;
+}
+
+.page-item.active .page-link {
+  background: linear-gradient(135deg, #6b0c12, #8f1018);
+  border-color: #6b0c12;
+}
+/* Custom Navbar Styles */
+.custom-navbar {
+  background: #000000 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.custom-navbar .navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.custom-navbar .navbar-nav .nav-link:hover {
+  background: rgba(107, 12, 18, 0.8);
+  transform: translateY(-2px);
+  color: white !important;
+}
+
+.custom-navbar .navbar-nav .nav-link.active {
+  background: linear-gradient(135deg, #6b0c12, #8f1018);
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.custom-navbar .navbar-brand {
+  color: white;
+}
+
+.custom-navbar .navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.custom-navbar .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Style for outline button */
+.custom-navbar .btn-outline-light {
+  border-color: #6b0c12;
+  color: #ffffff;
+}
+
+.custom-navbar .btn-outline-light:hover {
+  background: linear-gradient(135deg, #6b0c12, #8f1018);
+  border-color: transparent;
+  color: white;
 }

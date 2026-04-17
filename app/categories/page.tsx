@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Button, Modal, Form, Badge } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaUtensils, FaSave, FaTimes } from 'react-icons/fa';
 import { db } from '../lib/firebase';
-import { ref, get, push, remove, update } from 'firebase/database';
+import { ref, get, push, remove, update, set } from 'firebase/database';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import type { Category } from '../types';
@@ -25,7 +25,12 @@ export default function CategoriesPage() {
       const snapshot = await get(ref(db, 'categories'));
       const data: Category[] = [];
       snapshot.forEach((child) => {
-        data.push({ id: child.key, ...child.val() });
+        data.push({ 
+          id: child.key, 
+          ...child.val(),
+          // Ensure id is also stored inside the object if you want it as a field
+          categoryId: child.key 
+        });
       });
       setCategories(data.reverse());
     } catch (error) {
@@ -44,16 +49,21 @@ export default function CategoriesPage() {
     setLoading(true);
     
     try {
+      const categoryId = Date.now().toString(); // Generate custom ID
+      
       const categoryData = {
+        id: editingCategory?.id || categoryId, // Store ID as field
         name: categoryName.trim(),
         createdAt: Date.now()
       };
       
       if (editingCategory?.id) {
+        // Update existing category
         await update(ref(db, `categories/${editingCategory.id}`), categoryData);
         toast.success('Category updated successfully');
       } else {
-        await push(ref(db, 'categories'), categoryData);
+        // Create new category with custom ID
+        await set(ref(db, `categories/${categoryId}`), categoryData);
         toast.success('Category created successfully');
       }
       
@@ -98,14 +108,17 @@ export default function CategoriesPage() {
           {/* Header */}
           <div className="d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h2 className="fw-bold mb-2" style={{ color: '#000' }}>Categories Management</h2>
+              <h2 className="fw-bold mb-2" style={{ color: '#6b0c12' }}>Categories Management</h2>
               <p className="text-muted">Manage your food categories</p>
             </div>
             <Button 
-              variant="dark" 
               onClick={() => setShowModal(true)}
               className="d-flex align-items-center gap-2 px-4 py-2"
-              style={{ borderRadius: '12px' }}
+              style={{ 
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #6b0c12, #8f1018)',
+                border: 'none'
+              }}
             >
               <FaPlus size={16} />
               Add Category
@@ -133,8 +146,8 @@ export default function CategoriesPage() {
                           style={{ 
                             width: '50px', 
                             height: '50px', 
-                            background: 'linear-gradient(135deg, #ff6b35, #ff8555)',
-                            boxShadow: '0 4px 15px rgba(255, 107, 53, 0.3)'
+                            background: 'linear-gradient(135deg, #6b0c12, #b3141e)',
+                            boxShadow: '0 4px 15px rgba(107, 12, 18, 0.3)'
                           }}
                         >
                           <FaUtensils size={24} color="#fff" />
@@ -158,10 +171,15 @@ export default function CategoriesPage() {
                           </Button>
                         </div>
                       </div>
-                      <h5 className="fw-bold mb-2" style={{ color: '#000' }}>{category.name}</h5>
-                      <Badge bg="light" text="dark" className="mt-2 px-3 py-2">
-                        ID: {category.id?.slice(-8)}
-                      </Badge>
+                      <h5 className="fw-bold mb-2" style={{ color: '#6b0c12' }}>{category.name}</h5>
+                      <div className="mt-2">
+                        <Badge bg="light" text="dark" className="px-3 py-2 me-2">
+                          ID: {category.id?.slice(-8)}
+                        </Badge>
+                        <Badge bg="light" text="dark" className="px-3 py-2">
+                          {new Date(category.createdAt).toLocaleDateString()}
+                        </Badge>
+                      </div>
                     </Card.Body>
                   </Card>
                 </Col>
@@ -174,21 +192,25 @@ export default function CategoriesPage() {
       {/* Add/Edit Category Modal */}
       <Modal show={showModal} onHide={resetModal} centered>
         <Modal.Header closeButton className="border-0 pt-4 px-4">
-          <Modal.Title className="fw-bold">
+          <Modal.Title className="fw-bold" style={{ color: '#6b0c12' }}>
             {editingCategory ? 'Edit Category' : 'Add New Category'}
           </Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
           <Modal.Body className="px-4 pb-4">
             <Form.Group>
-              <Form.Label className="fw-semibold">Category Name *</Form.Label>
+              <Form.Label className="fw-semibold" style={{ color: '#6b0c12' }}>Category Name *</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="e.g., Pizza, Burgers, Drinks, Desserts"
                 value={categoryName}
                 onChange={(e) => setCategoryName(e.target.value)}
                 className="py-3"
-                style={{ borderRadius: '12px', border: '2px solid #e0e0e0' }}
+                style={{ 
+                  borderRadius: '12px', 
+                  border: '2px solid #e0e0e0',
+                  focusBorderColor: '#6b0c12'
+                }}
                 required
                 autoFocus
               />
@@ -208,10 +230,13 @@ export default function CategoriesPage() {
             </Button>
             <Button 
               type="submit" 
-              variant="dark" 
               disabled={loading}
               className="px-4 d-flex align-items-center gap-2"
-              style={{ borderRadius: '10px' }}
+              style={{ 
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #6b0c12, #8f1018)',
+                border: 'none'
+              }}
             >
               {loading ? (
                 <>Saving...</>

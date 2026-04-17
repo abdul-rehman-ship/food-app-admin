@@ -1,7 +1,7 @@
 'use client';
 
 import { Navbar as BSNavbar, Nav, Container, Button } from 'react-bootstrap';
-import { FaUtensils, FaPlus, FaList, FaSignOutAlt, FaHome, FaChartBar } from 'react-icons/fa';
+import { FaUtensils, FaList, FaSignOutAlt, FaHome, FaCog, FaTruck } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -14,15 +14,22 @@ export default function Navbar() {
     { href: '/', icon: FaHome, label: 'Dashboard' },
     { href: '/food-items', icon: FaUtensils, label: 'Food Items' },
     { href: '/categories', icon: FaList, label: 'Categories' },
+    { href: '/trailors', icon: FaTruck, label: 'Trailors' },
+    { href: '/settings', icon: FaCog, label: 'Settings' },
   ];
 
   return (
-    <BSNavbar bg="dark" variant="dark" expand="lg" className="shadow-sm sticky-top">
+    <BSNavbar expand="lg" className="custom-navbar shadow-sm sticky-top" style={{ background: '#000000' }}>
       <Container fluid>
         <BSNavbar.Brand as={Link} href="/" className="d-flex align-items-center gap-2">
-          <FaUtensils size={28} color="#ff6b35" />
-          <span className="fw-bold fs-4" style={{ background: 'linear-gradient(135deg, #fff, #ff6b35)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            FoodAdmin
+          <FaUtensils size={28} color="#6b0c12" />
+          <span className="fw-bold fs-4" style={{ 
+            background: 'linear-gradient(135deg, #ffffff, #6b0c12)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
+            Bertha's Food Admin
           </span>
         </BSNavbar.Brand>
         
@@ -36,7 +43,11 @@ export default function Navbar() {
                 as={Link} 
                 href={href}
                 className={`d-flex align-items-center gap-2 px-3 py-2 ${pathname === href ? 'active' : ''}`}
-                style={{ borderRadius: '10px' }}
+                style={{ 
+                  borderRadius: '10px',
+                  color: '#ffffff',
+                  transition: 'all 0.3s ease'
+                }}
               >
                 <Icon size={18} />
                 {label}
@@ -47,7 +58,12 @@ export default function Navbar() {
               size="sm" 
               onClick={logout}
               className="d-flex align-items-center gap-2 ms-2 px-3 py-2"
-              style={{ borderRadius: '10px', borderWidth: '2px' }}
+              style={{ 
+                borderRadius: '10px', 
+                borderWidth: '2px',
+                borderColor: '#6b0c12',
+                color: '#ffffff'
+              }}
             >
               <FaSignOutAlt size={16} />
               Logout

@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Container, Row, Col, Card } from 'react-bootstrap';
+import { useRouter } from 'next/navigation';
+import { Container, Row, Col, Card, Spinner } from 'react-bootstrap';
 import { FaUtensils, FaList, FaDollarSign, FaBoxes, FaPlusCircle, FaChartLine } from 'react-icons/fa';
 import { db } from './lib/firebase';
 import { ref, get } from 'firebase/database';
 import Navbar from './components/Navbar';
 import Link from 'next/link';
+import { getAdminAuth } from './lib/cookies';
 
 interface Stats {
   totalItems: number;
@@ -27,10 +29,24 @@ export default function DashboardPage() {
     totalValue: 0,
     lowStock: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
+    // Check authentication immediately
+    const auth = getAdminAuth();
+    const authenticated = auth === 'true';
+    
+    if (!authenticated) {
+      // Redirect immediately if not authenticated
+      router.push('/login');
+      return;
+    }
+    
+    setIsAuthenticated(true);
     fetchStats();
-  }, []);
+  }, [router]);
 
   const fetchStats = async () => {
     const [foodSnapshot, catSnapshot] = await Promise.all([
@@ -53,7 +69,25 @@ export default function DashboardPage() {
       totalValue,
       lowStock
     });
+    setLoading(false);
   };
+
+  // Show loading spinner while checking auth
+  if (!isAuthenticated) {
+    return (
+      <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ background: '#ffffff' }}>
+        <Spinner animation="border" variant="dark" />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ background: '#ffffff' }}>
+        <Spinner animation="border" variant="dark" />
+      </div>
+    );
+  }
 
   const statCards = [
     { title: 'Total Food Items', value: stats.totalItems, icon: FaUtensils, gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', bg: '#667eea' },
@@ -138,7 +172,6 @@ export default function DashboardPage() {
                 </Card.Body>
               </Card>
             </Col>
-           
           </Row>
         </Container>
       </div>

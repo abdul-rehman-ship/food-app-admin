@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Button, Modal, Form, Image, Badge } from 'react-bootstrap';
-import { FaPlus, FaEdit, FaTrash, FaUpload, FaTimes, FaSearch, FaFilter, FaUtensils, FaSave, FaEye } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaUpload, FaTimes, FaSearch, FaFilter, FaUtensils, FaSave, FaEye, FaClock } from 'react-icons/fa';
 import { db, storage } from '../lib/firebase';
 import { ref, get, push, remove, update } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -30,6 +30,7 @@ export default function FoodItemsPage() {
     description: '',
     ingredients: [] as string[],
     stock: '',
+    preparationTime: '',
     sizes: [] as Size[],
     categoryId: '',
     images: [] as string[]
@@ -195,6 +196,7 @@ export default function FoodItemsPage() {
         description: formData.description,
         ingredients: formData.ingredients,
         stock: parseInt(formData.stock),
+        preparationTime: formData.preparationTime,
         sizes: formData.sizes,
         images: formData.images,
         categoryId: formData.categoryId,
@@ -248,6 +250,7 @@ export default function FoodItemsPage() {
       description: '',
       ingredients: [],
       stock: '',
+      preparationTime: '',
       sizes: [],
       categoryId: '',
       images: []
@@ -274,6 +277,7 @@ export default function FoodItemsPage() {
       description: item.description,
       ingredients: item.ingredients || [],
       stock: item.stock.toString(),
+      preparationTime: item.preparationTime || '',
       sizes: item.sizes || [],
       categoryId: item.categoryId,
       images: item.images || []
@@ -291,6 +295,12 @@ export default function FoodItemsPage() {
     return category ? category.name : 'Unknown';
   };
 
+  // Format preparation time display
+  const formatPrepTime = (time: string) => {
+    if (!time) return 'Not specified';
+    return time;
+  };
+
   return (
     <>
       <Navbar />
@@ -299,14 +309,17 @@ export default function FoodItemsPage() {
           {/* Header */}
           <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <div>
-              <h2 className="fw-bold mb-2" style={{ color: '#000' }}>Food Items Management</h2>
+              <h2 className="fw-bold mb-2" style={{ color: '#6b0c12' }}>Food Items Management</h2>
               <p className="text-muted">Manage your menu items</p>
             </div>
             <Button 
-              variant="dark" 
               onClick={() => setShowModal(true)}
               className="d-flex align-items-center gap-2 px-4 py-2"
-              style={{ borderRadius: '12px' }}
+              style={{ 
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #6b0c12, #8f1018)',
+                border: 'none'
+              }}
             >
               <FaPlus size={16} />
               Add Food Item
@@ -379,11 +392,13 @@ export default function FoodItemsPage() {
                     
                     <Card.Body className="p-4">
                       <div className="d-flex justify-content-between align-items-start mb-2">
-                        <h5 className="fw-bold mb-0" style={{ color: '#000', cursor: 'pointer' }} 
+                        <h5 className="fw-bold mb-0" style={{ color: '#6b0c12', cursor: 'pointer' }} 
                             onClick={() => viewDetails(item)}>
                           {item.name}
                         </h5>
-                        <Badge bg="dark" className="px-3 py-2">${item.price}</Badge>
+                        <Badge style={{ background: 'linear-gradient(135deg, #6b0c12, #8f1018)' }} className="px-3 py-2">
+                          ${item.price}
+                        </Badge>
                       </div>
                       
                       <Badge bg="secondary" className="mb-2 px-3 py-2">
@@ -394,10 +409,15 @@ export default function FoodItemsPage() {
                         {item.description.substring(0, 80)}...
                       </p>
                       
-                      <div className="mb-2">
-                        <Badge bg="light" text="dark" className="me-2 px-3 py-2">
+                      <div className="d-flex flex-wrap gap-2 mb-2">
+                        <Badge bg="light" text="dark" className="px-3 py-2">
                           Stock: {item.stock}
                         </Badge>
+                        {item.preparationTime && (
+                          <Badge bg="light" text="dark" className="px-3 py-2 d-flex align-items-center gap-1">
+                            <FaClock size={12} /> {item.preparationTime}
+                          </Badge>
+                        )}
                         {item.sizes && item.sizes.length > 0 && (
                           <Badge bg="light" text="dark" className="px-3 py-2">
                             {item.sizes.length} size(s)
@@ -439,7 +459,7 @@ export default function FoodItemsPage() {
       {/* Add/Edit Food Item Modal */}
       <Modal show={showModal} onHide={resetModal} size="lg" centered>
         <Modal.Header closeButton className="border-0 pt-4 px-4">
-          <Modal.Title className="fw-bold">
+          <Modal.Title className="fw-bold" style={{ color: '#6b0c12' }}>
             {editingItem ? 'Edit Food Item' : 'Add New Food Item'}
           </Modal.Title>
         </Modal.Header>
@@ -447,7 +467,7 @@ export default function FoodItemsPage() {
           <Modal.Body className="px-4 pb-4" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             {/* Required Fields Section */}
             <div className="mb-4 pb-2 border-bottom">
-              <h6 className="fw-bold mb-3" style={{ color: '#ff6b35' }}>Required Information</h6>
+              <h6 className="fw-bold mb-3" style={{ color: '#6b0c12' }}>Required Information</h6>
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
@@ -492,7 +512,7 @@ export default function FoodItemsPage() {
               </Form.Group>
               
               <Row>
-                <Col md={6}>
+                <Col md={4}>
                   <Form.Group className="mb-3">
                     <Form.Label className="fw-semibold">Stock Quantity *</Form.Label>
                     <Form.Control
@@ -505,7 +525,29 @@ export default function FoodItemsPage() {
                     />
                   </Form.Group>
                 </Col>
-                <Col md={6}>
+                <Col md={4}>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="fw-semibold">Preparation Time *</Form.Label>
+                    <Form.Select
+                      value={formData.preparationTime}
+                      onChange={(e) => setFormData({ ...formData, preparationTime: e.target.value })}
+                      style={{ borderRadius: '10px', border: '2px solid #e0e0e0' }}
+                      required
+                    >
+                      <option value="">Select time</option>
+                      <option value="5-10 min">5-10 minutes</option>
+                      <option value="10-15 min">10-15 minutes</option>
+                      <option value="15-20 min">15-20 minutes</option>
+                      <option value="20-25 min">20-25 minutes</option>
+                      <option value="25-30 min">25-30 minutes</option>
+                      <option value="30-40 min">30-40 minutes</option>
+                      <option value="40-50 min">40-50 minutes</option>
+                      <option value="50-60 min">50-60 minutes</option>
+                      <option value="60+ min">60+ minutes</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={4}>
                   <Form.Group className="mb-3">
                     <Form.Label className="fw-semibold">Category *</Form.Label>
                     <Form.Select
@@ -526,7 +568,7 @@ export default function FoodItemsPage() {
 
             {/* Images - Compulsory */}
             <div className="mb-4 pb-2 border-bottom">
-              <h6 className="fw-bold mb-3" style={{ color: '#ff6b35' }}>
+              <h6 className="fw-bold mb-3" style={{ color: '#6b0c12' }}>
                 Images * {formData.images.length === 0 && <span className="text-danger">(At least 1 image required)</span>}
               </h6>
               <div className="border rounded p-3" style={{ borderRadius: '12px', border: `2px dashed ${formData.images.length === 0 ? '#dc3545' : '#e0e0e0'}` }}>
@@ -670,10 +712,13 @@ export default function FoodItemsPage() {
             </Button>
             <Button 
               type="submit" 
-              variant="dark" 
               disabled={loading || formData.images.length === 0}
               className="px-4 d-flex align-items-center gap-2"
-              style={{ borderRadius: '10px' }}
+              style={{ 
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #6b0c12, #8f1018)',
+                border: 'none'
+              }}
             >
               {loading ? (
                 <>Saving...</>
@@ -693,7 +738,7 @@ export default function FoodItemsPage() {
         {selectedItem && (
           <>
             <Modal.Header closeButton className="border-0 pt-4 px-4">
-              <Modal.Title className="fw-bold">{selectedItem.name}</Modal.Title>
+              <Modal.Title className="fw-bold" style={{ color: '#6b0c12' }}>{selectedItem.name}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="px-4 pb-4">
               {/* Images Gallery */}
@@ -714,14 +759,20 @@ export default function FoodItemsPage() {
               )}
               
               <Row className="mb-3">
-                <Col md={6}>
+                <Col md={4}>
                   <h6 className="fw-bold text-muted">Base Price</h6>
-                  <h4 className="fw-bold" style={{ color: '#ff6b35' }}>${selectedItem.price}</h4>
+                  <h4 className="fw-bold" style={{ color: '#6b0c12' }}>${selectedItem.price}</h4>
                 </Col>
-                <Col md={6}>
+                <Col md={4}>
                   <h6 className="fw-bold text-muted">Stock</h6>
                   <Badge bg={selectedItem.stock < 10 ? 'danger' : 'dark'} className="px-3 py-2">
                     {selectedItem.stock} units available
+                  </Badge>
+                </Col>
+                <Col md={4}>
+                  <h6 className="fw-bold text-muted">Preparation Time</h6>
+                  <Badge style={{ background: 'linear-gradient(135deg, #6b0c12, #8f1018)' }} className="px-3 py-2 d-inline-flex align-items-center gap-2">
+                    <FaClock size={12} /> {formatPrepTime(selectedItem.preparationTime)}
                   </Badge>
                 </Col>
               </Row>
@@ -760,7 +811,7 @@ export default function FoodItemsPage() {
                         <Card className="border-0 shadow-sm">
                           <Card.Body className="p-3 text-center">
                             <h6 className="fw-bold mb-1">{size.name}</h6>
-                            <Badge bg="dark">${size.price}</Badge>
+                            <Badge style={{ background: 'linear-gradient(135deg, #6b0c12, #8f1018)' }}>${size.price}</Badge>
                           </Card.Body>
                         </Card>
                       </Col>
@@ -771,10 +822,13 @@ export default function FoodItemsPage() {
             </Modal.Body>
             <Modal.Footer className="border-0 pb-4 px-4">
               <Button 
-                variant="dark" 
                 onClick={() => setShowDetailModal(false)}
                 className="px-4"
-                style={{ borderRadius: '10px' }}
+                style={{ 
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #6b0c12, #8f1018)',
+                  border: 'none'
+                }}
               >
                 Close
               </Button>

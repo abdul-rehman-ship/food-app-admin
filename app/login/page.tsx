@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { Button, Form, Container, Card, Spinner } from 'react-bootstrap';
-import { FaUtensils, FaKey, FaArrowRight, FaShieldAlt } from 'react-icons/fa';
+import { FaKey, FaArrowRight, FaShieldAlt } from 'react-icons/fa';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [adminKey, setAdminKey] = useState('');
@@ -38,15 +39,25 @@ export default function LoginPage() {
             
             <Card.Body className="p-5">
               <div className="text-center mb-4">
+                {/* Logo */}
                 <div className="mx-auto mb-4 d-flex align-items-center justify-content-center"
                      style={{ 
-                       width: '80px', 
-                       height: '80px', 
-                       background: 'linear-gradient(135deg, #000, #1a1a1a)',
+                       width: '100px', 
+                       height: '100px', 
+                       background: '#f8f9fa',
                        borderRadius: '50%',
-                       boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                       boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                       overflow: 'hidden',
+                       position: 'relative'
                      }}>
-                  <FaUtensils size={40} color="#ff6b35" />
+                  <Image
+                    src="/logo.png"
+                    alt="Food Admin Logo"
+                    width={100}
+                    height={100}
+                    style={{ objectFit: 'contain' }}
+                    priority
+                  />
                 </div>
                 <h2 className="fw-bold mb-2" style={{ background: 'linear-gradient(135deg, #000, #ff6b35)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   Welcome Back

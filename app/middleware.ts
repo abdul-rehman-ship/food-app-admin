@@ -82,8 +82,7 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ background: '#ffffff' }}>
+    return ( <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ background: '#ffffff' }}>
         <Spinner animation="border" variant="dark" />
       </div>
     );

@@ -92,29 +92,30 @@ export default function TrailorsPage() {
 
   // Initialize Map
   const initMap = (lat: number, lng: number) => {
-    if (!window?.google || !mapLoaded) return;
+    const google = (window as any).google;
+    if (!google || !mapLoaded) return;
 
     const mapElement = document.getElementById('trailor-map');
     if (!mapElement) return;
 
-    const mapInstance = new window?.google.maps.Map(mapElement, {
+    const mapInstance = new google.maps.Map(mapElement, {
       center: { lat, lng },
       zoom: 15,
-      mapTypeId: window?.google?.maps?.MapTypeId?.ROADMAP,
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
     });
 
-    const markerInstance = new window.google.maps.Marker({
+    const markerInstance = new google.maps.Marker({
       position: { lat, lng },
       map: mapInstance,
       draggable: true,
-      animation: window.google.maps.Animation.DROP,
+      animation: google.maps.Animation.DROP,
     });
 
     // Update coordinates when marker is dragged
     markerInstance.addListener('dragend', () => {
       const position = markerInstance.getPosition();
       if (position) {
-        setFormData(prev => ({
+        setFormData((prev: any) => ({
           ...prev,
           latitude: position.lat(),
           longitude: position.lng()
@@ -129,7 +130,7 @@ export default function TrailorsPage() {
       const lng = e.latLng?.lng();
       if (lat && lng) {
         markerInstance.setPosition({ lat, lng });
-        setFormData(prev => ({
+        setFormData((prev: any) => ({
           ...prev,
           latitude: lat,
           longitude: lng
@@ -144,7 +145,7 @@ export default function TrailorsPage() {
     // Initialize Search Box
     const input = document.getElementById('place-search') as HTMLInputElement;
     if (input) {
-      const searchBoxInstance = new window.google.maps.places.SearchBox(input);
+      const searchBoxInstance = new google.maps.places.SearchBox(input);
       
       searchBoxInstance.addListener('places_changed', () => {
         const places = searchBoxInstance.getPlaces();
@@ -156,7 +157,7 @@ export default function TrailorsPage() {
           if (lat && lng) {
             mapInstance.setCenter({ lat, lng });
             markerInstance.setPosition({ lat, lng });
-            setFormData(prev => ({
+            setFormData((prev: any) => ({
               ...prev,
               latitude: lat,
               longitude: lng,
@@ -180,7 +181,7 @@ export default function TrailorsPage() {
       (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        setFormData(prev => ({
+        setFormData((prev: any) => ({
           ...prev,
           latitude: lat,
           longitude: lng

@@ -77,16 +77,20 @@ export default function SettingsPage() {
       }
 
       const contactSnapshot = await get(ref(db, 'contact_info'));
-      if (contactSnapshot.exists()) {
-        const contactData = contactSnapshot.val();
-        setContactInfo({ id: Object.keys(contactData)[0], ...Object.values(contactData)[0] });
-      }
+if (contactSnapshot.exists()) {
+  const contactData = contactSnapshot.val();
+  const contactKey = Object.keys(contactData)[0];
+  const contactValue = contactData[contactKey];
+  setContactInfo({ id: contactKey, ...contactValue });
+}
 
-      const locationSnapshot = await get(ref(db, 'restaurant_location'));
-      if (locationSnapshot.exists()) {
-        const locationData = locationSnapshot.val();
-        setLocation({ id: Object.keys(locationData)[0], ...Object.values(locationData)[0] });
-      }
+const locationSnapshot = await get(ref(db, 'restaurant_location'));
+if (locationSnapshot.exists()) {
+  const locationData = locationSnapshot.val();
+  const locationKey = Object.keys(locationData)[0];
+  const locationValue = locationData[locationKey];
+  setLocation({ id: locationKey, ...locationValue });
+}
     } catch (error) {
       toast.error('Failed to fetch settings');
     }

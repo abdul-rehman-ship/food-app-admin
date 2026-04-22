@@ -74,6 +74,16 @@ export interface City {
   createdAt: number;
 }
 
+export interface OrderItem {
+  basePrice: number;
+  foodId: string;
+  foodImage: string;
+  foodName: string;
+  quantity: number;
+  selectedSize: string;
+  sizePrice: number;
+  totalPrice: number;
+}
 
 export interface Order {
   id?: string;

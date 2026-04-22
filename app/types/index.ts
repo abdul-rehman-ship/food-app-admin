@@ -57,13 +57,51 @@ export interface Trailor {
   id?: string;
   name: string;
   number: string;
-  driverId: string;
   phone: string;
   latitude: number;
   longitude: number;
   address: string;
   status: 'available' | 'busy' | 'offline';
-  vehicleType: 'bike' | 'car' | 'van' | 'truck';
-  vehicleNumber: string;
   createdAt: number;
+}
+
+export interface City {
+  id?: string;
+  name: string;
+  state: string;
+  deliveryFee: number;
+  isActive: boolean;
+  createdAt: number;
+}
+
+
+export interface Order {
+  id?: string;
+  orderId: string;
+  userId: string;
+  cityId: string;
+  cityName: string;
+  cityState: string;
+  comment: string;
+  createdAt: number;
+  deliveryAddress: string;
+  deliveryFee: number;
+  items: OrderItem[];
+  orderType: 'delivery' | 'pickup';
+  status: 'pending' | 'accepted' | 'rejected' | 'delivered';
+  subtotal: number;
+  total: number;
+  trailerAddress?: string;
+  trailerId?: string | null;
+  trailerName?: string;
+  trailerPhone?: string;
+}
+
+export interface User {
+  userId: string;
+  email: string;
+  fullName: string;
+  mobileNumber: string;
+  registeredAt: number;
+  status: string;
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Button, Modal, Form, Badge, Spinner } from 'react-bootstrap';
-import { FaPlus, FaEdit, FaTrash, FaMapMarkerAlt, FaSave, FaTruck, FaMotorcycle, FaCar, FaPhone, FaIdCard, FaCrosshairs, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaMapMarkerAlt, FaSave, FaTruck, FaPhone, FaCrosshairs, FaSearch, FaUser } from 'react-icons/fa';
 import { db } from '../lib/firebase';
 import { ref, get, push, remove, update } from 'firebase/database';
 import toast from 'react-hot-toast';
@@ -39,14 +39,11 @@ export default function TrailorsPage() {
   const [formData, setFormData] = useState({
     name: '',
     number: '',
-    driverId: '',
     phone: '',
     latitude: 40.7128,
     longitude: -74.0060,
     address: '',
-    status: 'available' as 'available' | 'busy' | 'offline',
-    vehicleType: 'bike' as 'bike' | 'car' | 'van' | 'truck',
-    vehicleNumber: ''
+    status: 'available' as 'available' | 'busy' | 'offline'
   });
 
   useEffect(() => {
@@ -68,7 +65,7 @@ export default function TrailorsPage() {
       setTrailors(data.reverse());
       setFilteredTrailors(data.reverse());
     } catch (error) {
-      toast.error('Failed to fetch trailors');
+      toast.error('Failed to fetch trailers');
     }
   };
 
@@ -78,8 +75,8 @@ export default function TrailorsPage() {
     if (searchTerm) {
       filtered = filtered.filter(trailor => 
         trailor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trailor.driverId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trailor.number.toLowerCase().includes(searchTerm.toLowerCase())
+        trailor.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        trailor.phone.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
@@ -202,7 +199,7 @@ export default function TrailorsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.number || !formData.driverId || !formData.phone || !formData.vehicleNumber) {
+    if (!formData.name || !formData.number || !formData.phone) {
       toast.error('Please fill all required fields');
       return;
     }
@@ -213,42 +210,39 @@ export default function TrailorsPage() {
       const trailorData = {
         name: formData.name,
         number: formData.number,
-        driverId: formData.driverId,
         phone: formData.phone,
         latitude: formData.latitude,
         longitude: formData.longitude,
         address: formData.address,
         status: formData.status,
-        vehicleType: formData.vehicleType,
-        vehicleNumber: formData.vehicleNumber,
         createdAt: Date.now()
       };
       
       if (editingTrailor?.id) {
         await update(ref(db, `trailors/${editingTrailor.id}`), trailorData);
-        toast.success('Trailor updated successfully');
+        toast.success('Trailer updated successfully');
       } else {
         await push(ref(db, 'trailors'), trailorData);
-        toast.success('Trailor added successfully');
+        toast.success('Trailer added successfully');
       }
       
       resetModal();
       fetchTrailors();
     } catch (error) {
-      toast.error('Failed to save trailor');
+      toast.error('Failed to save trailer');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this trailor?')) {
+    if (confirm('Are you sure you want to delete this trailer?')) {
       try {
         await remove(ref(db, `trailors/${id}`));
         toast.success('Trailor deleted successfully');
         fetchTrailors();
       } catch (error) {
-        toast.error('Failed to delete trailor');
+        toast.error('Failed to delete trailer');
       }
     }
   };
@@ -259,14 +253,11 @@ export default function TrailorsPage() {
     setFormData({
       name: '',
       number: '',
-      driverId: '',
       phone: '',
       latitude: 40.7128,
       longitude: -74.0060,
       address: '',
-      status: 'available',
-      vehicleType: 'bike',
-      vehicleNumber: ''
+      status: 'available'
     });
   };
 
@@ -275,14 +266,11 @@ export default function TrailorsPage() {
     setFormData({
       name: trailor.name,
       number: trailor.number,
-      driverId: trailor.driverId,
       phone: trailor.phone,
       latitude: trailor.latitude,
       longitude: trailor.longitude,
       address: trailor.address || '',
-      status: trailor.status,
-      vehicleType: trailor.vehicleType,
-      vehicleNumber: trailor.vehicleNumber
+      status: trailor.status
     });
     setShowModal(true);
     setTimeout(() => {
@@ -310,21 +298,6 @@ export default function TrailorsPage() {
     }
   };
 
-  const getVehicleIcon = (type: string) => {
-    switch(type) {
-      case 'bike':
-        return <FaMotorcycle />;
-      case 'car':
-        return <FaCar />;
-      case 'van':
-        return <FaTruck />;
-      case 'truck':
-        return <FaTruck />;
-      default:
-        return <FaTruck />;
-    }
-  };
-
   return (
     <>
       <Navbar />
@@ -333,7 +306,7 @@ export default function TrailorsPage() {
           {/* Header */}
           <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <div>
-              <h2 className="fw-bold mb-2" style={{ color: '#6b0c12' }}>Trailors Management</h2>
+              <h2 className="fw-bold mb-2" style={{ color: '#6b0c12' }}>Trailers Management</h2>
               <p className="text-muted">Manage delivery fleet and their locations</p>
             </div>
             <Button 
@@ -345,7 +318,7 @@ export default function TrailorsPage() {
                 padding: '10px 24px'
               }}
             >
-              <FaPlus className="me-2" /> Add New Trailor
+              <FaPlus className="me-2" /> Add New Trailer
             </Button>
           </div>
 
@@ -357,7 +330,7 @@ export default function TrailorsPage() {
                   <FaSearch className="position-absolute text-muted" style={{ top: '14px', left: '16px' }} />
                   <Form.Control
                     type="text"
-                    placeholder="Search by name, driver ID, or number..."
+                    placeholder="Search by name, number, or phone..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="py-3 ps-5"
@@ -386,8 +359,8 @@ export default function TrailorsPage() {
             <Card className="text-center py-5 border-0 shadow-sm" style={{ borderRadius: '20px' }}>
               <Card.Body>
                 <FaTruck size={60} className="text-muted mb-3" />
-                <h5 className="text-muted">No trailors found</h5>
-                <p className="text-muted">Click the button above to add your first trailor</p>
+                <h5 className="text-muted">No trailers found</h5>
+                <p className="text-muted">Click the button above to add your first trailer</p>
               </Card.Body>
             </Card>
           ) : (
@@ -407,11 +380,11 @@ export default function TrailorsPage() {
                               color: 'white'
                             }}
                           >
-                            {getVehicleIcon(trailor.vehicleType)}
+                            <FaTruck size={24} />
                           </div>
                           <div>
                             <h5 className="fw-bold mb-0" style={{ color: '#6b0c12' }}>{trailor.name}</h5>
-                            <small className="text-muted">ID: {trailor.driverId}</small>
+                            <small className="text-muted">#{trailor.number}</small>
                           </div>
                         </div>
                         {getStatusBadge(trailor.status)}
@@ -419,13 +392,8 @@ export default function TrailorsPage() {
                       
                       <div className="mb-3">
                         <p className="mb-1 small">
-                          <strong>Number:</strong> {trailor.number}
-                        </p>
-                        <p className="mb-1 small">
+                          <FaPhone className="me-2" size={12} />
                           <strong>Phone:</strong> {trailor.phone}
-                        </p>
-                        <p className="mb-1 small">
-                          <strong>Vehicle:</strong> {trailor.vehicleNumber}
                         </p>
                       </div>
                       
@@ -435,7 +403,7 @@ export default function TrailorsPage() {
                           {trailor.address || 'Address not set'}
                         </p>
                         <p className="mb-0 small text-muted">
-                          <strong>Coordinates:</strong> {trailor.latitude}, {trailor.longitude}
+                          <strong>Coordinates:</strong> {trailor.latitude.toFixed(4)}, {trailor.longitude.toFixed(4)}
                         </p>
                       </div>
                     </Card.Body>
@@ -474,7 +442,7 @@ export default function TrailorsPage() {
       <Modal show={showModal} onHide={resetModal} size="lg" centered>
         <Modal.Header closeButton className="border-0 pt-4 px-4">
           <Modal.Title className="fw-bold" style={{ color: '#6b0c12' }}>
-            {editingTrailor ? 'Edit Trailor' : 'Add New Trailor'}
+            {editingTrailor ? 'Edit Trailer' : 'Add New Trailer'}
           </Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
@@ -484,10 +452,10 @@ export default function TrailorsPage() {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold">Trailor Name *</Form.Label>
+                  <Form.Label className="fw-semibold">Trailer Name *</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder="e.g., John's Bike"
+                    placeholder="enter trailer name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     style={{ borderRadius: '10px', border: '2px solid #e0e0e0' }}
@@ -497,7 +465,7 @@ export default function TrailorsPage() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold">Trailor Number *</Form.Label>
+                  <Form.Label className="fw-semibold">Trailer Number *</Form.Label>
                   <Form.Control
                     type="text"
                     placeholder="e.g., T-001"
@@ -510,65 +478,17 @@ export default function TrailorsPage() {
               </Col>
             </Row>
 
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold">Driver ID *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="e.g., DRV001"
-                    value={formData.driverId}
-                    onChange={(e) => setFormData({ ...formData, driverId: e.target.value })}
-                    style={{ borderRadius: '10px', border: '2px solid #e0e0e0' }}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold">Phone Number *</Form.Label>
-                  <Form.Control
-                    type="tel"
-                    placeholder="+1 234 567 8900"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    style={{ borderRadius: '10px', border: '2px solid #e0e0e0' }}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold">Vehicle Type</Form.Label>
-                  <Form.Select
-                    value={formData.vehicleType}
-                    onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value as any })}
-                    style={{ borderRadius: '10px', border: '2px solid #e0e0e0' }}
-                  >
-                    <option value="bike">Bike</option>
-                    <option value="car">Car</option>
-                    <option value="van">Van</option>
-                    <option value="truck">Truck</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold">Vehicle Number *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="e.g., ABC-123"
-                    value={formData.vehicleNumber}
-                    onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value })}
-                    style={{ borderRadius: '10px', border: '2px solid #e0e0e0' }}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-semibold">Phone Number *</Form.Label>
+              <Form.Control
+                type="tel"
+                placeholder="+1 234 567 8900"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                style={{ borderRadius: '10px', border: '2px solid #e0e0e0' }}
+                required
+              />
+            </Form.Group>
 
             <Row>
               <Col md={6}>
@@ -682,7 +602,7 @@ export default function TrailorsPage() {
               <Form.Control
                 as="textarea"
                 rows={2}
-                placeholder="Full address of trailor location"
+                placeholder="Full address of trailer location"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 style={{ borderRadius: '10px', border: '2px solid #e0e0e0' }}

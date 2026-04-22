@@ -1,10 +1,11 @@
 'use client';
 
 import { Navbar as BSNavbar, Nav, Container, Button } from 'react-bootstrap';
-import { FaUtensils, FaList, FaSignOutAlt, FaHome, FaCog, FaTruck } from 'react-icons/fa';
+import { FaUtensils, FaList, FaSignOutAlt, FaHome, FaCog, FaTruck, FaCity } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { FaBox } from 'react-icons/fa';
 
 export default function Navbar() {
   const { logout } = useAuth();
@@ -13,8 +14,10 @@ export default function Navbar() {
   const navItems = [
     { href: '/', icon: FaHome, label: 'Dashboard' },
     { href: '/food-items', icon: FaUtensils, label: 'Food Items' },
+      { href: '/orders', icon: FaBox, label: 'Orders' },
     { href: '/categories', icon: FaList, label: 'Categories' },
-    { href: '/trailors', icon: FaTruck, label: 'Trailors' },
+    { href: '/trailors', icon: FaTruck, label: 'Trailers' },
+    { href: '/cities', icon: FaCity, label: 'Cities' },
     { href: '/settings', icon: FaCog, label: 'Settings' },
   ];
 

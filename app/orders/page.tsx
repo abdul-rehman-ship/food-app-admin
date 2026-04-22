@@ -69,7 +69,7 @@ export default function OrdersPage() {
     setFilteredOrders(filtered);
   };
 
-  const updateOrderStatus = async (orderId: string, newStatus: any) => {
+  const updateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
     setProcessingOrderId(orderId);
     
     try {

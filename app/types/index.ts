@@ -98,7 +98,7 @@ export interface Order {
   deliveryFee: number;
   items: OrderItem[];
   orderType: 'delivery' | 'pickup';
-  status: 'pending' | 'accepted' | 'rejected' | 'delivered';
+  status: 'pending' | 'accepted' | 'preparing' | 'ready_for_pickup' | 'on_the_way' | 'delivered' | 'rejected';
   subtotal: number;
   total: number;
   trailerAddress?: string;

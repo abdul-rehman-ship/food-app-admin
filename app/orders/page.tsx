@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Badge, Button, Modal, Form, Spinner, Image } from 'react-bootstrap';
-import { FaBox, FaUser, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDollarSign, FaTruck, FaCheck, FaTimes, FaClock, FaEye, FaMotorcycle, FaCity } from 'react-icons/fa';
+import { FaBox, FaUser, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDollarSign, FaTruck, FaCheck, FaTimes, FaClock, FaEye, FaMotorcycle, FaCity, FaArrowRight, FaSpinner } from 'react-icons/fa';
 import { db } from '../lib/firebase';
 import { ref, get, update } from 'firebase/database';
 import toast from 'react-hot-toast';
@@ -31,19 +31,16 @@ export default function OrdersPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch orders
       const ordersSnapshot = await get(ref(db, 'orders'));
       const ordersData: Order[] = [];
       ordersSnapshot.forEach((child) => {
         ordersData.push({ id: child.key, ...child.val() });
       });
       
-      // Sort by createdAt (latest first)
       ordersData.sort((a, b) => b.createdAt - a.createdAt);
       setOrders(ordersData);
       setFilteredOrders(ordersData);
 
-      // Fetch users
       const usersSnapshot = await get(ref(db, 'users'));
       const usersData: Record<string, User> = {};
       usersSnapshot.forEach((child) => {
@@ -81,7 +78,6 @@ export default function OrdersPage() {
       // If accepting order, check and update stock
       if (newStatus === 'accepted') {
         if (order && order.items) {
-          // First, check stock for all items
           for (const item of order.items) {
             const foodRef = ref(db, `food_items/${item.foodId}`);
             const foodSnapshot = await get(foodRef);
@@ -93,7 +89,6 @@ export default function OrdersPage() {
               return;
             }
             
-            // Check if sufficient stock is available
             if (foodData.stock < item.quantity) {
               toast.error(`Insufficient stock for "${item.foodName}". Available: ${foodData.stock}, Required: ${item.quantity}`);
               setProcessingOrderId(null);
@@ -101,21 +96,18 @@ export default function OrdersPage() {
             }
           }
           
-          // If all stock checks pass, update stock for each item
           for (const item of order.items) {
             const foodRef = ref(db, `food_items/${item.foodId}`);
             const foodSnapshot = await get(foodRef);
             const foodData = foodSnapshot.val();
             const newStock = foodData.stock - item.quantity;
             await update(foodRef, { stock: newStock });
-            console.log(`Updated stock for ${item.foodName}: ${foodData.stock} → ${newStock}`);
           }
           
           toast.success('Stock updated successfully');
         }
       }
       
-      // Update order status
       await update(ref(db, `orders/${orderId}`), { status: newStatus });
       toast.success(`Order ${newStatus.toUpperCase()} successfully`);
       await fetchData();
@@ -133,20 +125,26 @@ export default function OrdersPage() {
       case 'pending':
         return <Badge bg="warning" className="px-3 py-2" style={{ fontSize: '12px' }}>Pending</Badge>;
       case 'accepted':
-        return <Badge bg="success" className="px-3 py-2" style={{ fontSize: '12px' }}>Accepted</Badge>;
+        return <Badge bg="info" className="px-3 py-2" style={{ fontSize: '12px' }}>Accepted</Badge>;
+      case 'preparing':
+        return <Badge bg="primary" className="px-3 py-2" style={{ fontSize: '12px' }}>Preparing</Badge>;
+      case 'ready_for_pickup':
+        return <Badge bg="success" className="px-3 py-2" style={{ fontSize: '12px' }}>Ready for Pickup</Badge>;
+      case 'on_the_way':
+        return <Badge bg="info" className="px-3 py-2" style={{ fontSize: '12px' }}>On The Way</Badge>;
+      case 'delivered':
+        return <Badge bg="success" className="px-3 py-2" style={{ fontSize: '12px' }}>Delivered</Badge>;
       case 'rejected':
         return <Badge bg="danger" className="px-3 py-2" style={{ fontSize: '12px' }}>Rejected</Badge>;
-      case 'delivered':
-        return <Badge bg="info" className="px-3 py-2" style={{ fontSize: '12px' }}>Delivered</Badge>;
       default:
         return <Badge bg="secondary" className="px-3 py-2" style={{ fontSize: '12px' }}>{status}</Badge>;
     }
   };
 
   const getStatusActions = (order: Order) => {
+    const isProcessing = processingOrderId === order.id;
+    
     if (order.status === 'pending') {
-      const isProcessing = processingOrderId === order.id;
-      
       return (
         <div className="d-flex gap-2 mt-3">
           <Button 
@@ -158,7 +156,7 @@ export default function OrdersPage() {
             style={{ borderRadius: '8px' }}
           >
             {isProcessing ? <Spinner animation="border" size="sm" /> : <FaCheck size={14} />}
-            Accept
+            Accept Order
           </Button>
           <Button 
             size="sm" 
@@ -168,11 +166,97 @@ export default function OrdersPage() {
             className="flex-grow-1 d-flex align-items-center justify-content-center gap-2"
             style={{ borderRadius: '8px' }}
           >
-            <FaTimes size={14} /> Reject
+            <FaTimes size={14} /> Reject Order
           </Button>
         </div>
       );
     }
+    
+    if (order.status === 'accepted') {
+      if (order.orderType === 'delivery') {
+        return (
+          <div className="d-flex gap-2 mt-3">
+            <Button 
+              size="sm" 
+              variant="info"
+              onClick={() => updateOrderStatus(order.id!, 'on_the_way')}
+              disabled={isProcessing}
+              className="flex-grow-1 d-flex align-items-center justify-content-center gap-2"
+              style={{ borderRadius: '8px' }}
+            >
+              <FaTruck size={14} /> On The Way
+            </Button>
+          </div>
+        );
+      } else {
+        return (
+          <div className="d-flex gap-2 mt-3">
+            <Button 
+              size="sm" 
+              variant="primary"
+              onClick={() => updateOrderStatus(order.id!, 'preparing')}
+              disabled={isProcessing}
+              className="flex-grow-1 d-flex align-items-center justify-content-center gap-2"
+              style={{ borderRadius: '8px' }}
+            >
+              <FaSpinner size={14} /> Start Preparing
+            </Button>
+          </div>
+        );
+      }
+    }
+    
+    if (order.status === 'preparing') {
+      return (
+        <div className="d-flex gap-2 mt-3">
+          <Button 
+            size="sm" 
+            variant="success"
+            onClick={() => updateOrderStatus(order.id!, 'ready_for_pickup')}
+            disabled={isProcessing}
+            className="flex-grow-1 d-flex align-items-center justify-content-center gap-2"
+            style={{ borderRadius: '8px' }}
+          >
+            <FaCheck size={14} /> Ready for Pickup
+          </Button>
+        </div>
+      );
+    }
+    
+    if (order.status === 'on_the_way') {
+      return (
+        <div className="d-flex gap-2 mt-3">
+          <Button 
+            size="sm" 
+            variant="success"
+            onClick={() => updateOrderStatus(order.id!, 'delivered')}
+            disabled={isProcessing}
+            className="flex-grow-1 d-flex align-items-center justify-content-center gap-2"
+            style={{ borderRadius: '8px' }}
+          >
+            <FaCheck size={14} /> Mark as Delivered
+          </Button>
+        </div>
+      );
+    }
+    
+    if (order.status === 'ready_for_pickup') {
+      return (
+        <div className="d-flex gap-2 mt-3">
+          <Button 
+            size="sm" 
+            variant="success"
+            onClick={() => updateOrderStatus(order.id!, 'delivered')}
+            disabled={isProcessing}
+            className="flex-grow-1 d-flex align-items-center justify-content-center gap-2"
+            style={{ borderRadius: '8px' }}
+          >
+            <FaCheck size={14} /> Mark as Picked Up
+          </Button>
+        </div>
+      );
+    }
+    
     return null;
   };
 
@@ -200,7 +284,6 @@ export default function OrdersPage() {
       <Navbar />
       <div style={{ background: '#f8f9fa', minHeight: '100vh' }}>
         <Container className="py-5">
-          {/* Header */}
           <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <div>
               <h2 className="fw-bold mb-2" style={{ color: '#6b0c12' }}>
@@ -213,7 +296,6 @@ export default function OrdersPage() {
             </div>
           </div>
 
-          {/* Filters */}
           <div className="mb-4">
             <Row className="g-3">
               <Col md={6}>
@@ -227,8 +309,11 @@ export default function OrdersPage() {
                   <option value="all">All Orders</option>
                   <option value="pending">Pending</option>
                   <option value="accepted">Accepted</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="preparing">Preparing</option>
+                  <option value="ready_for_pickup">Ready for Pickup</option>
+                  <option value="on_the_way">On The Way</option>
                   <option value="delivered">Delivered</option>
+                  <option value="rejected">Rejected</option>
                 </Form.Select>
               </Col>
               <Col md={6}>
@@ -247,7 +332,6 @@ export default function OrdersPage() {
             </Row>
           </div>
 
-          {/* Orders Grid */}
           {filteredOrders.length === 0 ? (
             <Card className="text-center py-5 border-0 shadow-sm" style={{ borderRadius: '20px' }}>
               <Card.Body>
@@ -265,7 +349,6 @@ export default function OrdersPage() {
                 return (
                   <Col key={order.id} lg={6} xl={4}>
                     <Card className="border-0 shadow-sm h-100" style={{ borderRadius: '20px', overflow: 'hidden' }}>
-                      {/* Order Header */}
                       <div className="p-3" style={{ background: 'linear-gradient(135deg, #6b0c12, #8f1018)' }}>
                         <div className="d-flex justify-content-between align-items-center">
                           <div>
@@ -277,7 +360,6 @@ export default function OrdersPage() {
                       </div>
                       
                       <Card.Body className="p-4">
-                        {/* Customer Info */}
                         {user && (
                           <div className="mb-3 pb-2 border-bottom">
                             <div className="d-flex align-items-center gap-2 mb-2">
@@ -295,7 +377,6 @@ export default function OrdersPage() {
                           </div>
                         )}
                         
-                        {/* Order Items */}
                         <div className="mb-3">
                           {firstItem && (
                             <div className="d-flex gap-3">
@@ -328,7 +409,6 @@ export default function OrdersPage() {
                           )}
                         </div>
                         
-                        {/* Delivery Info */}
                         {order.orderType === 'delivery' && (
                           <div className="mb-3 p-2 rounded-3" style={{ background: '#f8f9fa' }}>
                             <div className="d-flex align-items-center gap-2 mb-1">
@@ -343,7 +423,6 @@ export default function OrdersPage() {
                           </div>
                         )}
                         
-                        {/* Trailer Info if assigned */}
                         {order.trailerName && (
                           <div className="mb-3 p-2 rounded-3" style={{ background: '#e8f5e9' }}>
                             <div className="d-flex align-items-center gap-2 mb-1">
@@ -357,7 +436,6 @@ export default function OrdersPage() {
                           </div>
                         )}
                         
-                        {/* Order Summary */}
                         <div className="pt-2 border-top">
                           <div className="d-flex justify-content-between mb-1">
                             <small>Subtotal:</small>
@@ -375,10 +453,8 @@ export default function OrdersPage() {
                           </div>
                         </div>
                         
-                        {/* Status Actions */}
                         {getStatusActions(order)}
                         
-                        {/* View Details Button */}
                         <Button 
                           variant="outline-dark" 
                           size="sm" 
@@ -401,7 +477,6 @@ export default function OrdersPage() {
         </Container>
       </div>
 
-      {/* Order Detail Modal */}
       <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg" centered>
         {selectedOrder && (
           <>
@@ -411,7 +486,6 @@ export default function OrdersPage() {
               </Modal.Title>
             </Modal.Header>
             <Modal.Body className="px-4 pb-4">
-              {/* Status Section */}
               <div className="mb-4 p-3 rounded-3" style={{ background: '#f8f9fa' }}>
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
@@ -423,37 +497,13 @@ export default function OrdersPage() {
                     <div className="small fw-semibold">{formatDate(selectedOrder.createdAt)}</div>
                   </div>
                 </div>
-                {selectedOrder.status === 'pending' && (
-                  <div className="mt-3 pt-2 border-top">
-                    <div className="d-flex gap-2">
-                      <Button 
-                        variant="success" 
-                        size="sm"
-                        onClick={() => {
-                          updateOrderStatus(selectedOrder.id!, 'accepted');
-                          setShowDetailModal(false);
-                        }}
-                        className="flex-grow-1 d-flex align-items-center justify-content-center gap-2"
-                      >
-                        <FaCheck /> Accept Order
-                      </Button>
-                      <Button 
-                        variant="danger" 
-                        size="sm"
-                        onClick={() => {
-                          updateOrderStatus(selectedOrder.id!, 'rejected');
-                          setShowDetailModal(false);
-                        }}
-                        className="flex-grow-1 d-flex align-items-center justify-content-center gap-2"
-                      >
-                        <FaTimes /> Reject Order
-                      </Button>
-                    </div>
+                <div className="mt-3 pt-2 border-top">
+                  <div className="d-flex gap-2">
+                    {getStatusActions(selectedOrder)}
                   </div>
-                )}
+                </div>
               </div>
 
-              {/* Customer Information */}
               {(() => {
                 const user = getUserDetails(selectedOrder.userId);
                 return user && (
@@ -487,7 +537,6 @@ export default function OrdersPage() {
                 );
               })()}
 
-              {/* Order Items */}
               <div className="mb-4">
                 <h6 className="fw-bold mb-3" style={{ color: '#6b0c12' }}>
                   <FaBox className="me-2" /> Order Items
@@ -517,7 +566,6 @@ export default function OrdersPage() {
                 ))}
               </div>
 
-              {/* Delivery Information */}
               {selectedOrder.orderType === 'delivery' && (
                 <div className="mb-4">
                   <h6 className="fw-bold mb-3" style={{ color: '#6b0c12' }}>
@@ -531,7 +579,6 @@ export default function OrdersPage() {
                 </div>
               )}
 
-              {/* Trailer Information */}
               {selectedOrder.trailerName && (
                 <div className="mb-4">
                   <h6 className="fw-bold mb-3" style={{ color: '#6b0c12' }}>
@@ -547,7 +594,6 @@ export default function OrdersPage() {
                 </div>
               )}
 
-              {/* Order Summary */}
               <div className="pt-3 border-top">
                 <h6 className="fw-bold mb-3" style={{ color: '#6b0c12' }}>Order Summary</h6>
                 <div className="d-flex justify-content-between mb-2">

@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Button, Modal, Form, Badge, Spinner } from 'react-bootstrap';
-import { FaPlus, FaEdit, FaTrash, FaCity, FaMapMarkerAlt, FaDollarSign, FaSave, FaToggleOn, FaToggleOff } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaCity, FaMapMarkerAlt, FaDollarSign, FaSave, FaToggleOn, FaToggleOff, FaIdCard } from 'react-icons/fa';
 import { db } from '../lib/firebase';
-import { ref, get, push, remove, update } from 'firebase/database';
+import { ref, get, push, remove, update, set } from 'firebase/database';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import type { City } from '../types';
@@ -83,11 +83,15 @@ export default function CitiesPage() {
       };
       
       if (editingCity?.id) {
+        // Update existing city
         await update(ref(db, `cities/${editingCity.id}`), cityData);
         toast.success('City updated successfully');
       } else {
-        await push(ref(db, 'cities'), cityData);
-        toast.success('City added successfully');
+        // Create new city with auto-generated ID
+        const newCityRef = push(ref(db, 'cities'));
+        const newCityId = newCityRef.key;
+        await set(newCityRef, cityData);
+        toast.success(`City added successfully with ID: ${newCityId?.slice(-8)}`);
       }
       
       resetModal();
@@ -242,10 +246,17 @@ export default function CitiesPage() {
                       </div>
                       
                       <h5 className="fw-bold mb-1" style={{ color: '#6b0c12' }}>{city.name}</h5>
-                      <p className="text-muted mb-3">
+                      <p className="text-muted mb-2">
                         <FaMapMarkerAlt className="me-1" size={12} />
                         {city.state}
                       </p>
+                      
+                      <div className="mb-2">
+                        <small className="text-muted">
+                          <FaIdCard className="me-1" size={10} />
+                          ID: {city.id?.slice(-8)}
+                        </small>
+                      </div>
                       
                       <div className="mb-3">
                         <Badge 
@@ -353,6 +364,16 @@ export default function CitiesPage() {
                 <option value="inactive">Inactive</option>
               </Form.Select>
             </Form.Group>
+
+            {/* Display ID info for new city */}
+            {!editingCity && (
+              <div className="alert alert-info mt-3 py-2">
+                <small>
+                  <FaIdCard className="me-2" />
+                  A unique ID will be automatically generated for this city when saved.
+                </small>
+              </div>
+            )}
           </Modal.Body>
           <Modal.Footer className="border-0 pb-4 px-4">
             <Button variant="light" onClick={resetModal} className="px-4" style={{ borderRadius: '10px' }}>

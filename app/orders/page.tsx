@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Badge, Button, Modal, Form, Spinner, Image } from 'react-bootstrap';
-import { FaBox, FaUser, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDollarSign, FaTruck, FaCheck, FaTimes, FaClock, FaEye, FaMotorcycle, FaCity, FaArrowRight, FaSpinner } from 'react-icons/fa';
+import { FaBox, FaUser, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDollarSign, FaTruck, FaCheck, FaTimes, FaClock, FaEye, FaMotorcycle, FaCity, FaArrowRight, FaSpinner, FaBell } from 'react-icons/fa';
 import { db } from '../lib/firebase';
 import { ref, get, update } from 'firebase/database';
 import toast from 'react-hot-toast';
@@ -69,6 +69,38 @@ export default function OrdersPage() {
     setFilteredOrders(filtered);
   };
 
+  // Send push notification to user
+ // Send push notification to user via API route
+const sendNotificationToUser = async (userId: string, title: string, body: string, orderId?: string) => {
+  const user = users[userId];
+  if (user && user.fcmToken) {
+    try {
+      const response = await fetch('/api/send-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: user.fcmToken,
+          title: title,
+          body: body,
+          orderId: orderId,
+        }),
+      });
+      
+      const result = await response.json();
+      if (response.ok) {
+        console.log('Notification sent successfully to user:', userId);
+      } else {
+        console.error('Failed to send notification:', result.error);
+      }
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
+  } else {
+    console.log('User has no FCM token:', userId);
+  }
+};
   const updateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
     setProcessingOrderId(orderId);
     
@@ -110,6 +142,42 @@ export default function OrdersPage() {
       
       await update(ref(db, `orders/${orderId}`), { status: newStatus });
       toast.success(`Order ${newStatus.toUpperCase()} successfully`);
+      
+      // Send push notification to user
+      let notificationTitle = '';
+      let notificationBody = '';
+      
+      switch(newStatus) {
+        case 'accepted':
+          notificationTitle = '✅ Order Accepted!';
+          notificationBody = `Your order #${order?.orderId?.slice(-8)} has been accepted and is being prepared.`;
+          break;
+        case 'rejected':
+          notificationTitle = '❌ Order Rejected';
+          notificationBody = `We're sorry, your order #${order?.orderId?.slice(-8)} could not be processed.`;
+          break;
+        case 'preparing':
+          notificationTitle = '👨‍🍳 Order Being Prepared';
+          notificationBody = `Your order #${order?.orderId?.slice(-8)} is now being prepared by our chefs.`;
+          break;
+        case 'ready_for_pickup':
+          notificationTitle = '📦 Ready for Pickup!';
+          notificationBody = `Your order #${order?.orderId?.slice(-8)} is ready for pickup.`;
+          break;
+        case 'on_the_way':
+          notificationTitle = '🚚 On The Way!';
+          notificationBody = `Your order #${order?.orderId?.slice(-8)} is on the way to you.`;
+          break;
+        case 'delivered':
+          notificationTitle = '🎉 Order Delivered!';
+          notificationBody = `Your order #${order?.orderId?.slice(-8)} has been delivered. Enjoy your meal!`;
+          break;
+      }
+      
+      if (notificationTitle && order?.userId) {
+        await sendNotificationToUser(order.userId, notificationTitle, notificationBody);
+      }
+      
       await fetchData();
       
     } catch (error) {
@@ -292,7 +360,7 @@ export default function OrdersPage() {
               <p className="text-muted">Manage customer orders, update status, and track deliveries</p>
             </div>
             <div className="text-muted">
-              Total Orders: <strong className="text-dark">{filteredOrders.length}</strong>
+              <FaBell className="me-1" /> Push notifications will be sent to customers on status update
             </div>
           </div>
 
@@ -345,6 +413,7 @@ export default function OrdersPage() {
               {filteredOrders.map((order) => {
                 const user = getUserDetails(order.userId);
                 const firstItem = order.items?.[0];
+                const hasFCM = user && user.fcmToken;
                 
                 return (
                   <Col key={order.id} lg={6} xl={4}>
@@ -362,17 +431,24 @@ export default function OrdersPage() {
                       <Card.Body className="p-4">
                         {user && (
                           <div className="mb-3 pb-2 border-bottom">
-                            <div className="d-flex align-items-center gap-2 mb-2">
-                              <FaUser style={{ color: '#6b0c12' }} />
-                              <strong className="text-dark">{user.fullName}</strong>
-                            </div>
-                            <div className="d-flex align-items-center gap-2 mb-1">
-                              <FaPhone size={12} className="text-muted" />
-                              <small className="text-muted">{user.mobileNumber}</small>
-                            </div>
-                            <div className="d-flex align-items-center gap-2">
-                              <FaEnvelope size={12} className="text-muted" />
-                              <small className="text-muted">{user.email}</small>
+                            <div className="d-flex justify-content-between align-items-start">
+                              <div>
+                                <div className="d-flex align-items-center gap-2 mb-2">
+                                  <FaUser style={{ color: '#6b0c12' }} />
+                                  <strong className="text-dark">{user.fullName}</strong>
+                                </div>
+                                <div className="d-flex align-items-center gap-2 mb-1">
+                                  <FaPhone size={12} className="text-muted" />
+                                  <small className="text-muted">{user.mobileNumber}</small>
+                                </div>
+                                <div className="d-flex align-items-center gap-2">
+                                  <FaEnvelope size={12} className="text-muted" />
+                                  <small className="text-muted">{user.email}</small>
+                                </div>
+                              </div>
+                              {hasFCM && (
+                                <FaBell size={14} style={{ color: '#28a745' }} title="Push notifications enabled" />
+                              )}
                             </div>
                           </div>
                         )}
@@ -528,8 +604,14 @@ export default function OrdersPage() {
                           <p className="mb-0">{user.mobileNumber}</p>
                         </div>
                         <div className="mb-2">
-                          <small className="text-muted">Customer Since</small>
-                          <p className="mb-0">{formatDate(user.registeredAt)}</p>
+                          <small className="text-muted">Push Notifications</small>
+                          <p className="mb-0">
+                            {user.fcmToken ? (
+                              <Badge bg="success">Enabled</Badge>
+                            ) : (
+                              <Badge bg="secondary">Not Enabled</Badge>
+                            )}
+                          </p>
                         </div>
                       </Col>
                     </Row>

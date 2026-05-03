@@ -114,4 +114,5 @@ export interface User {
   mobileNumber: string;
   registeredAt: number;
   status: string;
+  fcmToken?: string; 
 }

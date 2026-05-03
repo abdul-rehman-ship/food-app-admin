@@ -1,9 +1,9 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, get, set, push, remove, update } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getMessaging } from 'firebase/messaging';
 
 const firebaseConfig = {
-  // YOUR FIREBASE CONFIG HERE
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
@@ -16,6 +16,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
 export const storage = getStorage(app);
+export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
+export { app };
 
 // Helper functions
 export const checkAdminKey = async (key: string): Promise<boolean> => {
